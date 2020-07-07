@@ -1,0 +1,13 @@
+<adapter-config name="Write_file" adapter="file" wsdlLocation="../WSDLs/Write_file.wsdl" xmlns="http://platform.integration.oracle/blocks/adapter/fw/metadata">
+  
+  <connection-factory location="eis/FileAdapter"/>
+  <endpoint-interaction portType="Write_ptt" operation="Write">
+    <interaction-spec className="oracle.tip.adapter.file.outbound.FileInteractionSpec">
+      <property name="PhysicalDirectory" value="E:\10_REPO_GIT\fileAdapter\output"/>
+      <property name="NumberMessages" value="1"/>
+      <property name="Append" value="false"/>
+      <property name="FileNamingConvention" value="customer_%SEQ%.txt"/>
+    </interaction-spec>
+  </endpoint-interaction>
+
+</adapter-config>
