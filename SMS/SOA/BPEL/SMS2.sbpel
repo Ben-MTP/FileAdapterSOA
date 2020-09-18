@@ -1,0 +1,516 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer
+
+  Created: Mon Aug 03 11:37:34 ICT 2020
+  Author:  cimit
+  Type: BPEL 2.0 Subprocess
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<bpelx:subProcess name="SMS2" targetNamespace="http://xmlns.oracle.com/VASTemplate/SMS/SMS2"
+                  xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+                  xmlns:client="http://xmlns.oracle.com/VASTemplate/SMS/SMS2"
+                  xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+                  xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+                  xmlns:ora="http://schemas.oracle.com/xpath/extension" xmlns:ui="http://xmlns.oracle.com/soa/designer"
+                  xsi:type="bpel:tProcess" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:ns1="http://vasplatform.mobifone.vn" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:ns2="http://xmlns.oracle.com/VASTemplate/BPELTemplate/process"
+                  xmlns:ns3="http://xmlns.oracle.com/VASTemplate/SMS/GW.SMS"
+                  xmlns:ns4="http://xmlns.oracle.com/VASTemplate/SMS/GW.GetMT">
+  <!--
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+       ORCHESTRATION LOGIC
+       Set of activities coordinating the flow of messages across the
+       services integrated within this business process
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+  <import location="oracle.xml.parser.v2.XMLElement" importType="http://schemas.oracle.com/bpel/extension/java"/>
+  <variables>
+    <variable name="PoolParameter" element="ns1:pool"/>
+    <variable name="TYPE" type="xsd:string"/>
+    <variable name="outputFail" messageType="ns2:processResponseMessage"/>
+  </variables>
+  <sequence name="main">
+      <if name="bypassMT">
+         <condition>not($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'BYPASS_SMSMT']/ns1:v) or $PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'BYPASS_SMSMT']/ns1:v != '1'</condition>
+         <scope name="SendMT" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+                xmlns:ns1="http://vasplatform.mobifone.vn"
+                xmlns:ns2="http://xmlns.oracle.com/pcbpel/adapter/coherence/VASplatformSOA/SOABuildTemplate/LookupCoherence"
+                xmlns:ns8="http://xmlns.oracle.com/VASPLatformServiceBus/BS.Diameter/NEOwebservice">
+            <partnerLinks>
+               <partnerLink name="GW.SMS" partnerLinkType="ns3:GW.SMS" partnerRole="GW.SMSProvider"/>
+               <partnerLink name="GW.GetMT" partnerLinkType="ns4:GW.GetMT" partnerRole="GW.GetMTProvider"/>
+            </partnerLinks>
+            <variables>
+               <variable name="PoolParameterTmp" element="ns1:pool"/>
+               <variable name="KEY" type="xsd:string"/>
+               <variable name="CURRENT_LEVEL" type="xsd:int"/>
+               <variable name="bypassMT" type="xsd:int"/>
+               <variable name="InvokeSendMT_execute_InputVariable" messageType="ns3:execute_inputMessage"/>
+               <variable name="InvokeSendMT_execute_OutputVariable" messageType="ns3:execute_outputMessage"/>
+               <variable name="InvokeGetMT_execute_InputVariable" messageType="ns4:execute_inputMessage"/>
+               <variable name="InvokeGetMT_execute_OutputVariable" messageType="ns4:execute_outputMessage"/>
+            </variables>
+            <sequence>
+               <assign name="increaseStep" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                  <copy>
+                     <from>number($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SOASTEP']/ns1:v) + 1</from>
+                     <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SOASTEP']/ns1:v</to>
+                  </copy>
+               </assign>
+               <assign name="SMSRequest">
+                  <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                     <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                  </bpelx:annotation>
+                  <copy>
+                     <from>ora:doXSLTransformForDoc("../Transformations/SMSRequest.xsl", $PoolParameter)</from>
+                     <to variable="InvokeSendMT_execute_InputVariable" part="request"/>
+                  </copy>
+               </assign>
+               <if name="exist_SMSMT_KEY">
+                  <documentation>
+                     <![CDATA[check content]]>
+                  </documentation>
+                  <condition>$PoolParameter/ns1:ps/ns1:p[ns1:k = concat('SMSMT_',$TYPE,'_CONTENT')]/ns1:v</condition>
+                  <sequence name="Sequence10">
+                     <assign name="setLevel" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                        <copy>
+                           <from>0</from>
+                           <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$CURRENT_LEVEL</to>
+                        </copy>
+                     </assign>
+                     <assign name="mapContent" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                        <copy>
+                           <from>$PoolParameter/ns1:ps/ns1:p[ns1:k = concat('SMSMT_',$TYPE,'_CONTENT')]/ns1:v</from>
+                           <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'CONTENT']/ns1:v</to>
+                        </copy>
+                     </assign>
+                     <assign name="smsOrgContent" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                        <copy>
+                           <from>$PoolParameter/ns1:ps/ns1:p[ns1:k = concat('SMSMT_',$TYPE,'_CONTENT')]/ns1:v</from>
+                           <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SMSMT_ORG_CONTENT']/ns1:v</to>
+                        </copy>
+                     </assign>
+                  </sequence>
+                  <else>
+                     <documentation>
+                        <![CDATA[else]]>
+                     </documentation>
+                     <sequence name="Sequence13">
+                        <sequence>
+                           <if name="checkTypeLevel">
+                              <documentation>
+                                 <![CDATA[level = 0]]>
+                              </documentation>
+                              <condition>$TYPE = 'SUCCESS' or $TYPE = 'CONFIRM' or $TYPE = 'CONFIRM_FAIL' or $TYPE = 'SUCCESS_FIRST' or $TYPE = 'SUCCESS_PROG' or $TYPE = 'KT' or $TYPE = 'KT_PKG_INFO' or $TYPE = 'HDSD'</condition>
+                              <assign name="setLevel" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                 <copy>
+                                    <from>0</from>
+                                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$CURRENT_LEVEL</to>
+                                 </copy>
+                              </assign>
+                              <elseif>
+                                 <documentation>
+                                    <![CDATA[level = 1]]>
+                                 </documentation>
+                                 <condition>$TYPE = 'CONFIRM_TIMEOUT' or $TYPE = 'KT_ERROR' or $TYPE = 'HDSD_ERROR'</condition>
+                                 <assign name="setLevel"
+                                         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                    <copy>
+                                       <from>1</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$CURRENT_LEVEL</to>
+                                    </copy>
+                                 </assign>
+                              </elseif>
+                              <elseif>
+                                 <documentation>
+                                    <![CDATA[level = 2]]>
+                                 </documentation>
+                                 <condition>$TYPE = 'INIT_FAIL'</condition>
+                                 <assign name="setLevel"
+                                         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                    <copy>
+                                       <from>2</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$CURRENT_LEVEL</to>
+                                    </copy>
+                                 </assign>
+                              </elseif>
+                              <else>
+                                 <assign name="setLevel"
+                                         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                    <copy>
+                                       <from>9</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$CURRENT_LEVEL</to>
+                                    </copy>
+                                 </assign>
+                              </else>
+                           </if>
+                           <if name="isContainKey">
+                              <documentation>
+                                 <![CDATA[layer cmd]]>
+                              </documentation>
+                              <condition expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">contains($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'LIST_KEYS_SMSMT']/ns1:v, concat(',SMSMT_', $PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'CMD_ID']/ns1:v, '_', $TYPE,','))</condition>
+                              <assign name="mapKeyCoherence"
+                                      xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                 <copy>
+                                    <from>concat('SMSMT_', $PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'CMD_ID']/ns1:v, '_', $TYPE)</from>
+                                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'MTKEY']/ns1:v</to>
+                                 </copy>
+                                 <copy>
+                                    <from>concat('SMSMT_', $PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'CMD_ID']/ns1:v, '_', $TYPE)</from>
+                                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'MTKEY']/ns1:v</to>
+                                 </copy>
+                              </assign>
+                              <elseif>
+                                 <documentation>
+                                    <![CDATA[layer service]]>
+                                 </documentation>
+                                 <condition>contains($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'LIST_KEYS_SMSMT']/ns1:v, concat(',SMSMT_', $PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SERVICE_ID']/ns1:v,'_', $TYPE,','))</condition>
+                                 <assign name="mapKeyCoherence"
+                                         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                    <copy>
+                                       <from>concat('SMSMT_', $PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SERVICE_ID']/ns1:v, '_', $TYPE)</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'MTKEY']/ns1:v</to>
+                                    </copy>
+                                    <copy>
+                                       <from>concat('SMSMT_', $PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SERVICE_ID']/ns1:v, '_', $TYPE)</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'MTKEY']/ns1:v</to>
+                                    </copy>
+                                 </assign>
+                              </elseif>
+                              <elseif>
+                                 <documentation>
+                                    <![CDATA[layer common]]>
+                                 </documentation>
+                                 <condition>$TYPE = 'FAIL' or $TYPE = 'CONFIRM' or $TYPE = 'CONFIRM_FAIL' or $TYPE = 'SUCCESS' or $TYPE = 'SUCCESS_FIRST' or $TYPE = 'SUCCESS_PROG'</condition>
+                                 <assign name="mapKeyCoherence"
+                                         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                    <copy>
+                                       <from>concat('SMSMT_',$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'CMD_ACT']/ns1:v, '_', $TYPE)</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'MTKEY']/ns1:v</to>
+                                    </copy>
+                                    <copy>
+                                       <from>concat('SMSMT_',$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'CMD_ACT']/ns1:v, '_', $TYPE)</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'MTKEY']/ns1:v</to>
+                                    </copy>
+                                 </assign>
+                              </elseif>
+                              <else>
+                                 <documentation>
+                                    <![CDATA[layer common]]>
+                                 </documentation>
+                                 <assign name="mapKeyCoherence"
+                                         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                    <copy>
+                                       <from>concat('SMSMT_', $TYPE)</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'MTKEY']/ns1:v</to>
+                                    </copy>
+                                    <copy>
+                                       <from>concat('SMSMT_', $TYPE)</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'MTKEY']/ns1:v</to>
+                                    </copy>
+                                 </assign>
+                              </else>
+                           </if>
+                        </sequence>
+                        <assign name="GetSMSMTRequest">
+                           <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                              <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                           </bpelx:annotation>
+                           <copy>
+                              <from>ora:doXSLTransformForDoc("../Transformations/GetSMSMTRequest.xsl", $PoolParameter)</from>
+                              <to variable="InvokeGetMT_execute_InputVariable" part="request"/>
+                           </copy>
+                        </assign>
+                        <assign name="LogRqGW" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                           <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                              <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                           </bpelx:annotation>
+                           <copy>
+                              <from>ora:doXSLTransformForDoc("../Transformations/LogRqGW.xsl", $InvokeGetMT_execute_InputVariable.request)</from>
+                              <to variable="PoolParameterTmp"/>
+                           </copy>
+                        </assign>
+                        <assign name="pushToLog" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                           <copy>
+                              <from>'GetSMSMTRequest'</from>
+                              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps/@n</to>
+                           </copy>
+                           <copy>
+                              <from>string($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SOASTEP']/ns1:v)</from>
+                              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps/@i</to>
+                           </copy>
+                           <extensionAssignOperation>
+                              <bpelx:append xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                                 <bpelx:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps</bpelx:from>
+                                 <bpelx:to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter</bpelx:to>
+                              </bpelx:append>
+                           </extensionAssignOperation>
+                        </assign>
+                        <invoke name="InvokeGetMT" partnerLink="GW.GetMT" portType="ns4:GW.GetMT_ptt"
+                                operation="execute" inputVariable="InvokeGetMT_execute_InputVariable"
+                                outputVariable="InvokeGetMT_execute_OutputVariable"
+                                xmlns:bpelx="http://schemas.oracle.com/bpel/extension" bpelx:invokeAsDetail="no">
+                           <bpelx:toProperties>
+                              <bpelx:toProperty name="rest.binding.http.Content-Encoding">'utf-8'</bpelx:toProperty>
+                           </bpelx:toProperties>
+                        </invoke>
+                        <assign name="LogRsGW" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                           <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                              <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                           </bpelx:annotation>
+                           <copy>
+                              <from>ora:doXSLTransformForDoc("../Transformations/LogRsGW.xsl", $InvokeGetMT_execute_OutputVariable.reply)</from>
+                              <to variable="PoolParameterTmp"/>
+                           </copy>
+                        </assign>
+                        <assign name="pushToLog" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                           <copy>
+                              <from>'GetSMSMTResponse'</from>
+                              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps/@n</to>
+                           </copy>
+                           <copy>
+                              <from>string($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SOASTEP']/ns1:v)</from>
+                              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps/@i</to>
+                           </copy>
+                           <extensionAssignOperation>
+                              <bpelx:append xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                                 <bpelx:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps</bpelx:from>
+                                 <bpelx:to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter</bpelx:to>
+                              </bpelx:append>
+                           </extensionAssignOperation>
+                        </assign>
+                        <if name="checkStatus">
+                           <condition>$InvokeGetMT_execute_OutputVariable.reply/ns1:S != '1'</condition>
+                           <sequence name="Sequence18">
+                              <if name="setSMSMTDefault"
+                                  xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                 <documentation>
+                                    <![CDATA[not define]]>
+                                 </documentation>
+                                 <condition>not($PoolParameter/ns1:ps/ns1:p[ns1:k = 'SMSMT_DEFAULT']/ns1:v)</condition>
+                                 <sequence>
+                                    <assign name="mapContent"
+                                            xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                       <copy>
+                                          <from>'SMS chưa được cấu hình, vui lòng liên hệ quản trị viên để khai báo nội dung MT'</from>
+                                          <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'CONTENT']/ns1:v</to>
+                                       </copy>
+                                    </assign>
+                                 </sequence>
+                                 <else>
+                                    <documentation>
+                                       <![CDATA[define]]>
+                                    </documentation>
+                                    <assign name="smsContentDefault"
+                                            xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                       <copy>
+                                          <from>$PoolParameter/ns1:ps/ns1:p[ns1:k = 'SMSMT_DEFAULT']/ns1:v</from>
+                                          <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'CONTENT']/ns1:v</to>
+                                       </copy>
+                                    </assign>
+                                 </else>
+                              </if>
+                           </sequence>
+                           <else>
+                              <sequence name="Sequence17">
+                                 <if name="checkDefineParam">
+                                    <condition>not($InvokeGetMT_execute_OutputVariable.reply/ns1:ps/ns1:p[ns1:k = 'LIST_KEY']/ns1:v)</condition>
+                                    <assign name="mapContent">
+                                       <copy>
+                                          <from>$InvokeGetMT_execute_OutputVariable.reply/ns1:ps/ns1:p[ns1:k = 'CONTENT']/ns1:v</from>
+                                          <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'CONTENT']/ns1:v</to>
+                                       </copy>
+                                    </assign>
+                                    <else>
+                                       <sequence name="Sequence21">
+                                          <extensionActivity>
+                                             <bpelx:exec name="MapMessageMT2"
+                                                         xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                                                <![CDATA[try {      
+    XMLElement xmlContent = (XMLElement) getVariableData("InvokeGetMT_execute_OutputVariable","reply", "/ns1:rs/ns1:ps/ns1:p[ns1:k = 'CONTENT']/ns1:v");      
+    if (xmlContent != null){   
+        String content = xmlContent.getTextContent();    
+        try {      
+            XMLElement xmlListKey = (XMLElement) getVariableData("InvokeGetMT_execute_OutputVariable","reply", "/ns1:rs/ns1:ps/ns1:p[ns1:k = 'LIST_KEY']/ns1:v");      
+			if (xmlListKey != null) {      
+                String listKey = xmlListKey.getTextContent();      
+				String delimiter = null;      
+				try{      
+					XMLElement xmlDelimiter = (XMLElement) getVariableData("PoolParameter", "/ns1:pool/ns1:ps[@i = 1]/ns1:p[ns1:k = 'DELIMITER_PRICE']/ns1:v");      
+					delimiter = xmlDelimiter.getTextContent();      
+					if (delimiter == null || delimiter.length() == 0) {      
+						delimiter = null;      
+					}   
+				}catch(Exception ex){      
+					delimiter = null;      
+				}      
+				      
+                String [] arr  = listKey.split(",");      
+                String value = "";      
+                for (int i = 0; i < arr.length ; i ++){      
+                    try{      
+                        XMLElement xmlValue = (XMLElement) getVariableData("PoolParameter", "/ns1:pool/ns1:ps[@i = 1]/ns1:p[ns1:k = '" + arr[i] + "']/ns1:v");      
+                        value = xmlValue.getTextContent();      
+						if (delimiter != null) {      
+							if (arr[i].indexOf("PRICE") > -1){      
+								if (value.chars().allMatch(Character::isDigit)) {      
+									StringBuilder price = new StringBuilder(value);      
+									price.reverse();      
+									StringBuilder priceNew = new StringBuilder();      
+									int len = price.length();   
+									for (int j = 1; j <= len; j++) {   
+										priceNew.append(price.charAt(j - 1));   
+										if (j % 3 == 0 && j < len) {   
+											priceNew.append(delimiter);   
+										}   
+									}   
+									priceNew.reverse();      
+									value = priceNew.toString();      
+								}      
+							}      
+						}      
+                    }catch(Exception ex){      
+                        value = "";                 
+                    }      
+                    content = content.replace("$"+arr[i], value);      
+                }      
+            }      
+        } catch(Exception ex){    
+        }   
+        setVariableData("InvokeSendMT_execute_InputVariable", "request", "/ns1:rq/ns1:ps/ns1:p[ns1:k = 'CONTENT']/ns1:v", content);      
+    }      
+} catch (Exception e) {   
+	System.out.println(e.getMessage()); 
+}]]>
+                                             </bpelx:exec>
+                                          </extensionActivity>
+                                       </sequence>
+                                    </else>
+                                 </if>
+                                 <assign name="smsOrgContent"
+                                         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                    <copy>
+                                       <from>$InvokeGetMT_execute_OutputVariable.reply/ns1:ps/ns1:p[ns1:k = 'CONTENT']/ns1:v</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SMSMT_ORG_CONTENT']/ns1:v</to>
+                                    </copy>
+                                 </assign>
+                              </sequence>
+                           </else>
+                        </if>
+                     </sequence>
+                  </else>
+               </if>
+               <assign name="mapSMSMTContent" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                  <copy>
+                     <from>$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'CONTENT']/ns1:v</from>
+                     <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SMSMT_CONTENT']/ns1:v</to>
+                  </copy>
+               </assign>
+               <if name="checkBypass">
+                  <condition>not(contains($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'CHANNEL_BYPASS_MT']/ns1:v, concat(',', $PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'CHANNEL']/ns1:v,',')))</condition>
+                  <if name="checkSendSMSMT">
+                     <condition>not($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'LEVEL_SEND_MT']/ns1:v) or number($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'LEVEL_SEND_MT']/ns1:v) &gt; $CURRENT_LEVEL</condition>
+                     <sequence>
+                        <if name="isUseBrandName">
+                           <condition>$PoolParameter/ns1:ps/ns1:p[ns1:k = 'CMD_USE_BRANDNAME']/ns1:v = '1'</condition>
+                           <if name="mtNotUse">
+                              <condition>$InvokeGetMT_execute_OutputVariable.reply/ns1:ps/ns1:p[ns1:k = 'SEND_BRAND']/ns1:v = '0'</condition>
+                              <assign name="cleanBrandName">
+                                 <copy>
+                                    <from>''</from>
+                                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'BRANDNAME']/ns1:v</to>
+                                 </copy>
+                              </assign>
+                           </if>
+                           <else>
+                              <if name="mtNotUse" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                 <condition>$InvokeGetMT_execute_OutputVariable.reply/ns1:ps/ns1:p[ns1:k = 'SEND_BRAND']/ns1:v != '1'</condition>
+                                 <assign name="cleanBrandName">
+                                    <copy>
+                                       <from>''</from>
+                                       <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_InputVariable.request/ns1:ps/ns1:p[ns1:k = 'BRANDNAME']/ns1:v</to>
+                                    </copy>
+                                 </assign>
+                              </if>
+                           </else>
+                        </if>
+                        <assign name="LogRqGW" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                           <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                              <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                           </bpelx:annotation>
+                           <copy>
+                              <from>ora:doXSLTransformForDoc("../Transformations/LogRqGW.xsl", $InvokeSendMT_execute_InputVariable.request)</from>
+                              <to variable="PoolParameterTmp"/>
+                           </copy>
+                        </assign>
+                        <assign name="pushToLog" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                           <copy>
+                              <from>'SMSRequest'</from>
+                              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps/@n</to>
+                           </copy>
+                           <copy>
+                              <from>string($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SOASTEP']/ns1:v)</from>
+                              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps/@i</to>
+                           </copy>
+                           <extensionAssignOperation>
+                              <bpelx:append xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                                 <bpelx:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps</bpelx:from>
+                                 <bpelx:to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter</bpelx:to>
+                              </bpelx:append>
+                           </extensionAssignOperation>
+                        </assign>
+                        <invoke name="InvokeSendMT" partnerLink="GW.SMS" portType="ns3:GW.SMS_ptt" operation="execute"
+                                inputVariable="InvokeSendMT_execute_InputVariable"
+                                outputVariable="InvokeSendMT_execute_OutputVariable" bpelx:invokeAsDetail="no"
+                                xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                           <bpelx:toProperties>
+                              <bpelx:toProperty name="rest.binding.http.Content-Encoding">'utf-8'</bpelx:toProperty>
+                           </bpelx:toProperties>
+                        </invoke>
+                        <assign name="LogRsGW" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                           <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                              <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                           </bpelx:annotation>
+                           <copy>
+                              <from>ora:doXSLTransformForDoc("../Transformations/LogRsGW.xsl", $InvokeSendMT_execute_OutputVariable.reply)</from>
+                              <to variable="PoolParameterTmp"/>
+                           </copy>
+                        </assign>
+                        <assign name="pushToLog" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                           <copy>
+                              <from>'SMSResponse'</from>
+                              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps/@n</to>
+                           </copy>
+                           <copy>
+                              <from>string($PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SOASTEP']/ns1:v)</from>
+                              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps/@i</to>
+                           </copy>
+                           <extensionAssignOperation>
+                              <bpelx:append xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                                 <bpelx:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameterTmp/ns1:ps</bpelx:from>
+                                 <bpelx:to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter</bpelx:to>
+                              </bpelx:append>
+                           </extensionAssignOperation>
+                        </assign>
+                        <if name="checkStatus" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                           <condition expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeSendMT_execute_OutputVariable.reply/ns1:S != '1'</condition>
+                           <sequence name="Sequence9">
+                              <assign name="mapFail" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                 <copy>
+                                    <from>$InvokeSendMT_execute_OutputVariable.reply</from>
+                                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputFail.payload</to>
+                                 </copy>
+                              </assign>
+                           </sequence>
+                        </if>
+                     </sequence>
+                  </if>
+               </if>
+            </sequence>
+         </scope>
+      </if>
+  </sequence>
+</bpelx:subProcess>

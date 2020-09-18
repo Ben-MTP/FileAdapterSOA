@@ -25,5 +25,7 @@
    </list>
    <list n="listOfChildren">
       <hash><url n="URL" path="FileAdapterProject/FileAdapterProject.jpr"/></hash>
+      <hash><url n="URL" path="SMS/SMS.jpr"/></hash>
+      <hash><url n="URL" path="TestAppendAssign/TestAppendAssign.jpr"/></hash>
    </list>
 </jws:workspace>

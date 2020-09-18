@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dgm:gDiagram xmlns:dgm="http://xmlns.oracle.com/sca/soadgm">
+    <dgm:gService name="process_client_ep">
+        <dgm:body borderWidth="2" arcRad="20" X="21" Y="101" width="137" height="84">
+            <dgm:borderColor r="153" g="153" b="153"/>
+            <dgm:bgColor r="255" g="255" b="255"/>
+        </dgm:body>
+        <dgm:shadow arcRad="20" X="11" Y="94" width="156" height="98">
+            <dgm:bgColor r="196" g="228" b="240"/>
+        </dgm:shadow>
+        <dgm:outputPort name="process_client_ep" X="127" Y="0" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/VASTemplate/BPELTemplate/process#wsdl.interface(process)"/>
+        <dgm:nodeIcon URI="/oracle/tip/tools/ide/adapters/designtime/adapter/images/soap_service_20x20.png" X="20" Y="4" width="20" height="20"/>
+        <dgm:operations>
+            <dgm:item>process</dgm:item>
+        </dgm:operations>
+    </dgm:gService>
+    <dgm:gReference name="GW.SMS">
+        <dgm:body borderWidth="2" arcRad="20" X="850" Y="146" width="136" height="84">
+            <dgm:borderColor r="153" g="153" b="153"/>
+            <dgm:bgColor r="255" g="255" b="255"/>
+        </dgm:body>
+        <dgm:shadow arcRad="20" X="840" Y="139" width="156" height="98">
+            <dgm:bgColor r="196" g="228" b="240"/>
+        </dgm:shadow>
+        <dgm:inputPort name="GW.SMS" X="-10" Y="0" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/VASTemplate/SMS/GW.SMS#wsdl.interface(GW.SMS_ptt)"/>
+        <dgm:nodeIcon URI="/oracle/tip/tools/ide/adapters/designtime/adapter/images/RestAdapterService20x20px.png" X="27" Y="4" width="20" height="20"/>
+        <dgm:operations>
+            <dgm:item>execute</dgm:item>
+        </dgm:operations>
+    </dgm:gReference>
+    <dgm:gReference name="GW.GetMT">
+        <dgm:body borderWidth="2" arcRad="20" X="850" Y="28" width="136" height="84">
+            <dgm:borderColor r="153" g="153" b="153"/>
+            <dgm:bgColor r="255" g="255" b="255"/>
+        </dgm:body>
+        <dgm:shadow arcRad="20" X="840" Y="21" width="156" height="98">
+            <dgm:bgColor r="196" g="228" b="240"/>
+        </dgm:shadow>
+        <dgm:inputPort name="GW.GetMT" X="-10" Y="0" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/VASTemplate/SMS/GW.GetMT#wsdl.interface(GW.GetMT_ptt)"/>
+        <dgm:nodeIcon URI="/oracle/tip/tools/ide/adapters/designtime/adapter/images/RestAdapterService20x20px.png" X="27" Y="4" width="20" height="20"/>
+        <dgm:operations>
+            <dgm:item>execute</dgm:item>
+        </dgm:operations>
+    </dgm:gReference>
+    <dgm:gComponent name="process">
+        <dgm:body borderWidth="2" arcRad="20" X="364" Y="86" width="130" height="86">
+            <dgm:borderColor r="69" g="113" b="140"/>
+            <dgm:lightBgColor r="166" g="208" b="230"/>
+            <dgm:darkBgColor r="99" g="162" b="201"/>
+        </dgm:body>
+        <dgm:shadow arcRad="20" X="354" Y="79" width="150" height="102">
+            <dgm:bgColor r="196" g="228" b="240"/>
+        </dgm:shadow>
+        <dgm:inputPort name="process_client" X="-10" Y="15" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/VASTemplate/BPELTemplate/process#wsdl.interface(process)"/>
+        <dgm:outputPort name="SMS" X="120" Y="15" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png"/>
+        <dgm:outputPort name="SMS2" X="120" Y="40" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png"/>
+        <dgm:nodeIcon URI="/oracle/tip/tools/ide/bpel/shared/plugins/resources/images/soa/process_20x20.png" X="10" Y="4" width="20" height="20"/>
+    </dgm:gComponent>
+    <dgm:gComponent name="SMS">
+        <dgm:body borderWidth="2" arcRad="20" X="607" Y="26" width="130" height="86">
+            <dgm:borderColor r="141" g="141" b="141"/>
+            <dgm:lightBgColor r="255" g="255" b="255"/>
+            <dgm:darkBgColor r="202" g="202" b="202"/>
+        </dgm:body>
+        <dgm:shadow arcRad="20" X="597" Y="19" width="150" height="102">
+            <dgm:bgColor r="196" g="228" b="240"/>
+        </dgm:shadow>
+        <dgm:inputPort name="SMS" X="-10" Y="15" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png"/>
+        <dgm:outputPort name="GW.GetMT" X="120" Y="15" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/VASTemplate/SMS/GW.GetMT#wsdl.interface(GW.GetMT_ptt)"/>
+        <dgm:outputPort name="GW.SMS" X="120" Y="40" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/VASTemplate/SMS/GW.SMS#wsdl.interface(GW.SMS_ptt)"/>
+        <dgm:nodeIcon URI="/oracle/tip/tools/ide/bpel/v2/plugins/resources/images/application/scaconfig/subprocess_20x20.png" X="10" Y="4" width="20" height="20"/>
+    </dgm:gComponent>
+    <dgm:gComponent name="SMS2">
+        <dgm:body borderWidth="2" arcRad="20" X="607" Y="146" width="130" height="86">
+            <dgm:borderColor r="141" g="141" b="141"/>
+            <dgm:lightBgColor r="255" g="255" b="255"/>
+            <dgm:darkBgColor r="202" g="202" b="202"/>
+        </dgm:body>
+        <dgm:shadow arcRad="20" X="597" Y="139" width="150" height="102">
+            <dgm:bgColor r="196" g="228" b="240"/>
+        </dgm:shadow>
+        <dgm:inputPort name="SMS2" X="-10" Y="15" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png"/>
+        <dgm:outputPort name="GW.GetMT" X="120" Y="15" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/VASTemplate/SMS/GW.GetMT#wsdl.interface(GW.GetMT_ptt)"/>
+        <dgm:outputPort name="GW.SMS" X="120" Y="40" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/VASTemplate/SMS/GW.SMS#wsdl.interface(GW.SMS_ptt)"/>
+        <dgm:nodeIcon URI="/oracle/tip/tools/ide/bpel/v2/plugins/resources/images/application/scaconfig/subprocess_20x20.png" X="10" Y="4" width="20" height="20"/>
+    </dgm:gComponent>
+    <dgm:gWireLink source="process_client_ep" target="process/process_client" width="2">
+        <dgm:gSegment X1="168" Y1="111" X2="354" Y2="111"/>
+        <dgm:baseColor r="153" g="153" b="153"/>
+        <dgm:selectedColor r="49" g="106" b="196"/>
+    </dgm:gWireLink>
+    <dgm:gWireLink source="SMS/GW.GetMT" target="GW.GetMT" width="2">
+        <dgm:gSegment X1="747" Y1="51" X2="771" Y2="51"/>
+        <dgm:gSegment X1="771" Y1="51" X2="771" Y2="38"/>
+        <dgm:gSegment X1="771" Y1="38" X2="840" Y2="38"/>
+        <dgm:baseColor r="153" g="153" b="153"/>
+        <dgm:selectedColor r="49" g="106" b="196"/>
+    </dgm:gWireLink>
+    <dgm:gWireLink source="SMS/GW.SMS" target="GW.SMS" width="2">
+        <dgm:gSegment X1="747" Y1="76" X2="816" Y2="76"/>
+        <dgm:gSegment X1="816" Y1="76" X2="816" Y2="156"/>
+        <dgm:gSegment X1="816" Y1="156" X2="840" Y2="156"/>
+        <dgm:baseColor r="153" g="153" b="153"/>
+        <dgm:selectedColor r="49" g="106" b="196"/>
+    </dgm:gWireLink>
+    <dgm:gWireLink source="SMS2/GW.GetMT" target="GW.GetMT" width="2">
+        <dgm:gSegment X1="747" Y1="171" X2="786" Y2="171"/>
+        <dgm:gSegment X1="786" Y1="171" X2="786" Y2="38"/>
+        <dgm:gSegment X1="786" Y1="38" X2="840" Y2="38"/>
+        <dgm:baseColor r="153" g="153" b="153"/>
+        <dgm:selectedColor r="49" g="106" b="196"/>
+    </dgm:gWireLink>
+    <dgm:gWireLink source="SMS2/GW.SMS" target="GW.SMS" width="2">
+        <dgm:gSegment X1="747" Y1="196" X2="801" Y2="196"/>
+        <dgm:gSegment X1="801" Y1="196" X2="801" Y2="156"/>
+        <dgm:gSegment X1="801" Y1="156" X2="840" Y2="156"/>
+        <dgm:baseColor r="153" g="153" b="153"/>
+        <dgm:selectedColor r="49" g="106" b="196"/>
+    </dgm:gWireLink>
+    <dgm:gWireLink source="process/SMS" target="SMS/SMS" width="2">
+        <dgm:gSegment X1="504" Y1="111" X2="528" Y2="111"/>
+        <dgm:gSegment X1="528" Y1="111" X2="528" Y2="51"/>
+        <dgm:gSegment X1="528" Y1="51" X2="597" Y2="51"/>
+        <dgm:baseColor r="183" g="183" b="183"/>
+        <dgm:selectedColor r="49" g="106" b="196"/>
+    </dgm:gWireLink>
+    <dgm:gWireLink source="process/SMS2" target="SMS2/SMS2" width="2">
+        <dgm:gSegment X1="504" Y1="136" X2="528" Y2="136"/>
+        <dgm:gSegment X1="528" Y1="136" X2="528" Y2="171"/>
+        <dgm:gSegment X1="528" Y1="171" X2="597" Y2="171"/>
+        <dgm:baseColor r="183" g="183" b="183"/>
+        <dgm:selectedColor r="49" g="106" b="196"/>
+    </dgm:gWireLink>
+</dgm:gDiagram>

@@ -1,0 +1,75 @@
+<?xml version= '1.0' encoding= 'UTF-8' ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://vasplatform.mobifone.vn"
+            targetNamespace="http://vasplatform.mobifone.vn" elementFormDefault="qualified">
+  <!-- Khai bao object request -->
+  <xsd:element name="req">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="ps" minOccurs="1"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <!-- Khai bao object response -->
+  <xsd:element name="res">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="S" type="xsd:string" nillable="false"/>
+        <xsd:element name="SM" type="xsd:string" nillable="false"/>
+        <xsd:element ref="pool" minOccurs="0"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  
+    <!-- Khai bao object request -->
+  <xsd:element name="rq">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="ps" minOccurs="1"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <!-- Khai bao object response -->
+  <xsd:element name="rs">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="S" type="xsd:string" nillable="false"/>
+        <xsd:element name="SM" type="xsd:string" nillable="false"/>
+        <xsd:element ref="ps" minOccurs="0"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  
+  <!-- Khai bao object Parameters su dung lai Object Parameter theo chuan  maxOccurs="unbounded"-->
+  <xsd:element name="ps">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="p" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <!-- Khai bao object Parameter theo chuan attribute name-value -->
+  <xsd:element name="p">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="k" type="xsd:string"/>
+        <xsd:element name="v" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  
+  <xsd:element name="pool">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ps" minOccurs="1" maxOccurs="unbounded">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element ref="p" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+            <xsd:attribute name="n" type="xsd:string"/>
+            <xsd:attribute name="i" type="xsd:integer"/>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

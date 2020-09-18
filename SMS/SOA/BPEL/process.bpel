@@ -1,0 +1,152 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Mon Jul 20 15:53:50 ICT 2020
+  Author:  cimit
+  Type: BPEL 2.0 Process
+  Purpose: Synchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="process"
+               targetNamespace="http://xmlns.oracle.com/VASTemplate/BPELTemplate/process"
+               xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+               xmlns:client="http://xmlns.oracle.com/VASTemplate/BPELTemplate/process"
+               xmlns:ora="http://schemas.oracle.com/xpath/extension"
+               xmlns:ui="http://xmlns.oracle.com/soa/designer"
+               xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:ns1="http://vasplatform.mobifone.vn"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap"
+         xmlns:sp1="http://xmlns.oracle.com/VASTemplate/SMS/SMS2">
+  <import namespace="http://vasplatform.mobifone.vn" location="../Schemas/NEOFormat.xsd"
+          importType="http://www.w3.org/2001/XMLSchema"/>
+  <import ui:processWSDL="true" namespace="http://xmlns.oracle.com/VASTemplate/BPELTemplate/process" location="../WSDLs/process.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"/>
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    --> 
+  <partnerLinks>
+    <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="process_client" partnerLinkType="client:process" myRole="processProvider"/>
+  </partnerLinks>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      VARIABLES                                                        
+      List of messages and XML documents used within this BPEL process 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <variables>
+    <!-- Reference to the message passed as input during initiation -->
+    <variable name="inputVariable" messageType="client:processRequestMessage"/>
+
+    <!-- Reference to the message that will be returned to the requester-->
+    <variable name="outputVariable" messageType="client:processResponseMessage"/>
+    <variable name="PoolParameter" element="ns1:pool"/>
+    <variable name="outputFail" messageType="client:processResponseMessage"/>
+  </variables>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC                                               
+     Set of activities coordinating the flow of messages across the    
+     services integrated within this business process                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <sequence name="main">
+
+    <!-- Receive input from requestor. (Note: This maps to operation defined in process.wsdl) -->
+    <receive name="receiveInput" partnerLink="process_client" portType="client:process" operation="process" variable="inputVariable" createInstance="yes"/><scope name="initParam"
+                                                                                                                                                                  xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+      <sequence>
+         <assign name="FlowInitParam" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+            <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+               <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+            </bpelx:annotation>
+            <copy>
+               <from>ora:doXSLTransformForDoc("../Transformations/FlowInitParam.xsl", $inputVariable.payload)</from>
+               <to variable="PoolParameter"/>
+            </copy>
+         </assign><assign name="FlowUniqueParam" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+      <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+         <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+      </bpelx:annotation>
+      <copy>
+         <from>ora:doXSLTransformForDoc("../Transformations/FlowUniqueParam.xsl", $PoolParameter)</from>
+         <to variable="PoolParameter"/>
+      </copy>
+   </assign>
+         <extensionActivity>
+            <bpelx:exec name="getInstanceName" xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                  <![CDATA[try {       
+   String instanceName = System.getProperty("weblogic.Name");       
+   setVariableData("PoolParameter", "/ns1:pool/ns1:ps[@i = 1]/ns1:p[ns1:k = 'INST']/ns1:v", instanceName);      
+}catch(Exception e){       
+   setVariableData("PoolParameter", "/ns1:pool/ns1:ps[@i = 1]/ns1:p[ns1:k = 'INST']/ns1:v", "unkhow instance");        
+}]]>
+               </bpelx:exec>
+         </extensionActivity>
+      </sequence>
+   </scope>
+      <scope name="SMS" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+         <extensionActivity>
+            <bpelx:call name="SMS" xmlns:sp1="http://xmlns.oracle.com/VASTemplate/SMS/SMS" target="sp1:SMS"
+                        xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+               <bpelx:param name="PoolParameter" copyByValue="no" variable="PoolParameter"/>
+               <bpelx:param name="TYPE" copyByValue="yes">'SUCCESS'</bpelx:param>
+               <bpelx:param name="outputFail" copyByValue="no" variable="outputFail"/>
+            </bpelx:call>
+         </extensionActivity>
+      </scope><scope name="SMS2" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+      
+   <sequence name="Sequence1">
+            <extensionActivity>
+               <bpelx:call name="SMS2" xmlns:sp1="http://xmlns.oracle.com/VASTemplate/SMS/SMS2" target="sp1:SMS2">
+                  <bpelx:param name="PoolParameter" copyByValue="no" variable="PoolParameter"/>
+                  <bpelx:param name="TYPE" copyByValue="yes">'SUCCESS'</bpelx:param>
+                  <bpelx:param name="outputFail" copyByValue="no" variable="outputFail"/>
+               </bpelx:call>
+            </extensionActivity>
+         </sequence></scope><scope name="mapResponse" xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+      <sequence>
+            <assign name="mapSuccess">
+               <copy>
+                  <from>'1'</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'S']/ns1:v</to>
+               </copy>
+               <copy>
+                  <from>'SUCC'</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$PoolParameter/ns1:ps[@i = 1]/ns1:p[ns1:k = 'SM']/ns1:v</to>
+               </copy>
+            </assign>
+            <assign name="FlowResponse">
+            <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+               <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+            </bpelx:annotation>
+            <copy>
+               <from>ora:doXSLTransformForDoc("../Transformations/FlowResponse.xsl", $PoolParameter)</from>
+               <to variable="outputVariable" part="payload"/>
+            </copy>
+         </assign>
+      </sequence>
+   </scope><!-- Generate reply to synchronous request -->
+    <reply name="replyOutput" partnerLink="process_client" portType="client:process" operation="process" variable="outputVariable"/>
+  </sequence>
+</process>
